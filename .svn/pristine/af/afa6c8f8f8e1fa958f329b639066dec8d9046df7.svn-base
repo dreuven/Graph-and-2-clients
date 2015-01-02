@@ -1,0 +1,112 @@
+package graph;
+import org.junit.Test;
+import static org.junit.Assert.*;
+import java.util.Arrays;
+
+public class TraversalTesting {
+	private class BFSextended extends BreadthFirstTraversal {
+        private int indexVis;
+        private int indexPosVis;
+        private int[] myArrayVis;
+        private int[] myArrayPosVis;
+        BFSextended(Graph G) {
+        	super(G);
+        	myArrayVis = new int[G.vertexSize()];
+        	myArrayPosVis = new int[G.vertexSize()];
+        	indexVis = 0;
+        	indexPosVis = 0;
+        }
+        @Override
+        public boolean visit(int v) {
+        	myArrayVis[indexVis] = v;
+        	indexVis += 1;
+        	return true;
+        }
+        @Override
+        public boolean postVisit(int v) {
+        	myArrayPosVis[indexPosVis] = v;
+        	indexPosVis += 1;
+        	return true;
+        }
+        protected int[] getVisArray() {
+        	return myArrayVis;
+        }
+        protected int[] getPosVisArray() {
+        	return myArrayPosVis;
+        }
+    }
+    private class DFSextended extends DepthFirstTraversal {
+        private int indexVis;
+        private int indexPosVis;
+        private int[] myArrayVis;
+        private int[] myArrayPosVis;
+        DFSextended(Graph G) {
+            super(G);
+            myArrayVis = new int[G.vertexSize()];
+            myArrayPosVis = new int[G.vertexSize()];
+            indexVis = 0;
+            indexPosVis = 0;
+        }
+        @Override
+        protected boolean visit(int v) {
+            myArrayVis[indexVis] = v;
+            indexVis += 1;
+            return true;
+        }
+        @Override
+        protected boolean postVisit(int v) {
+            myArrayPosVis[indexPosVis] = v;
+            indexPosVis += 1;
+            return true;
+        }
+        @Override
+        protected boolean shouldPostVisit(int v) {
+            return true;
+        }
+        protected int[] getVisArray() {
+            return myArrayVis;
+        }
+        protected int[] getPosVisArray() {
+            return myArrayPosVis;
+        }
+
+    }
+
+    @Test
+    public void TraversalTest() {
+    	DirectedGraph g = new DirectedGraph();
+    	int[] poss1VisDFS = {5, 4, 1, 3, 2};
+    	int[] poss2VisDFS = {5, 3, 2, 4, 1};
+    	int[] poss1PosVisDFS = {1, 4, 2, 3, 5};
+    	int[] poss2PosVisDFS = {2, 3, 1, 4, 5};
+
+        int[] poss1VisBFS = {5, 4, 3, 1, 2};
+        int[] poss2VisBFS = {5, 3, 4, 2, 1};
+        int[] poss3VisBFS = {5, 4, 3, 2, 1};
+        int[] poss4VisBFS = {5, 4, 3, 1, 2};
+    	g.add();
+    	g.add();
+    	g.add();
+    	g.add();
+    	g.add();
+    	g.add(5, 4);
+    	g.add(5, 3);
+    	g.add(4, 1);
+    	g.add(3, 2);
+    	g.add(1, 5);
+        BFSextended b = new BFSextended(g);
+        DFSextended d = new DFSextended(g);
+        b.traverse(5);
+        d.traverse(5);
+        int[] actualArrVisBFS = b.getVisArray();
+        int[] actualArrPosVisDFS = d.getPosVisArray();
+        int[] actualArrVisDFS = d.getVisArray();
+        // for(int elem : actualArrVisDFS){
+        //     System.out.println(elem);
+        // }
+        assertTrue(Arrays.equals(poss1VisDFS,actualArrVisDFS) || Arrays.equals(poss2VisDFS, actualArrVisDFS));
+        assertTrue(Arrays.equals(poss1PosVisDFS, actualArrPosVisDFS) || Arrays.equals(poss2PosVisDFS,actualArrPosVisDFS));
+        assertTrue(Arrays.equals(poss1VisBFS, actualArrVisBFS) || Arrays.equals(poss2VisBFS, actualArrVisBFS) ||
+            Arrays.equals(poss3VisBFS, actualArrVisBFS) || Arrays.equals(poss4VisBFS, actualArrVisBFS));
+	}
+}

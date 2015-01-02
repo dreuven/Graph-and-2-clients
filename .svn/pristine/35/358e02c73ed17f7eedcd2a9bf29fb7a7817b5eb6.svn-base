@@ -1,0 +1,318 @@
+package graph;
+import java.util.HashMap;
+import java.util.ArrayList;
+
+/* See restrictions in Graph.java. */
+
+/** A partial implementation of Graph containing elements common to
+ *  directed and undirected graphs.
+ *
+ *  @author Doron Reuven.
+ */
+abstract class GraphObj extends Graph {
+
+    /** A new, empty Graph. */
+    GraphObj() {
+        if(isDirected()){
+            hashSucc = new HashMap<Integer, ArrayList<Integer>>();
+            hashPred = new HashMap<Integer, ArrayList<Integer>>();
+        } else{
+            unDirectedHash = new HashMap<Integer, ArrayList<Integer>>();
+        }
+    }
+
+    @Override
+    public int vertexSize() {
+        if(isDirected()){
+            return hashSucc.size();
+        } else {
+            return unDirectedHash.size();
+        }
+    }
+    @Override
+    public int maxVertex() {
+        int max = 0;
+        if(vertexSize() == 0){
+            return 0;
+        }
+        if (isDirected()){
+            for (int key : hashSucc.keySet()){
+                if (key > max){
+                    max = key;
+                }
+            }
+            return max;
+        } else {
+            for (int key : unDirectedHash.keySet()){
+                if (key > max){
+                    max = key;
+                }
+            }
+            return max;
+        }
+    }
+
+    @Override
+    public int edgeSize() {
+        int totlEdSz = 0;
+        if (isDirected()) {
+            for (int elem : hashSucc.keySet()) {
+                totlEdSz += hashSucc.get(elem).size();
+            }
+            return totlEdSz;
+        } else {
+            for (int elem : unDirectedHash.keySet()) {
+                totlEdSz += unDirectedHash.get(elem).size();
+            }
+            return totlEdSz / 2;
+        }
+    }
+
+    @Override
+    public abstract boolean isDirected();
+
+    @Override
+    public int outDegree(int v) {
+        if (!contains(v)){
+            return 0;
+        }
+        if (isDirected()) {
+            return hashSucc.get(v).size();
+        } else {
+            return unDirectedHash.get(v).size();
+        }
+    }
+
+    @Override
+    public abstract int inDegree(int v);
+
+    @Override
+    public boolean contains(int u) {
+        if (isDirected()) {
+            return hashSucc.containsKey(u);
+        } else {
+            return unDirectedHash.containsKey(u);
+        }
+    }
+
+    @Override
+    public boolean contains(int u, int v) {
+        if (contains(u) && contains(v)) {
+            if (isDirected()){
+                return hashSucc.get(u).contains((Integer) v);
+            } else {
+                return unDirectedHash.get(u).contains((Integer) v);
+            }
+        }
+        return false;
+    }
+
+    @Override
+    public int add() {
+        if(isDirected() && maxVertex() == vertexSize()) {
+            int toBeAdded = maxVertex();
+            hashSucc.put(toBeAdded + 1, new ArrayList<Integer>());
+            hashPred.put(toBeAdded + 1, new ArrayList<Integer>());
+            return toBeAdded + 1;
+        }
+        if(!isDirected() && maxVertex() == vertexSize()) {
+            unDirectedHash.put(maxVertex() + 1, new ArrayList<Integer>());
+            return maxVertex();
+        }
+        if (isDirected()) {
+            for (int i = 1; i < maxVertex(); i++){
+                if (!hashSucc.containsKey(i)){
+                    hashSucc.put(i, new ArrayList<Integer>());
+                    hashPred.put(i, new ArrayList<Integer>());
+                    return i;
+                }
+            }
+        } else {
+            for (int i = 1; i < maxVertex(); i++) {
+                if (!unDirectedHash.containsKey(i)) {
+                    unDirectedHash.put(i, new ArrayList<Integer>());
+                    return i;
+                }
+            }
+        }
+        return 0;
+    }
+
+    @Override
+    public int add(int u, int v) {
+            if (!contains(u, v)){
+                if (isDirected()) {
+                    hashSucc.get(u).add(v);
+                    hashPred.get(v).add(u);
+                } else {
+                    unDirectedHash.get(u).add(v);
+                    unDirectedHash.get(v).add(u);
+                }
+                return u;
+            }
+            return u; //WHAT DO I DO IN THE CASE U AND V ARE NOT ALREADY IN MY GRAPH
+    }
+    @Override
+    public void remove(int v) {
+        if (contains(v)) {
+            if (isDirected()) {
+                for (int elem : hashSucc.keySet()) {
+                    if (hashSucc.get(elem).contains((Integer) v)){
+                        hashSucc.get(elem).remove((Integer) v);
+                    }
+
+                }
+                for (int elem : hashSucc.get(v)) {
+                    hashPred.get(elem).remove((Integer) v);
+                }
+                hashSucc.remove(v);
+                hashPred.remove(v);
+            } else {
+                for (int elem : unDirectedHash.get(v)) {
+                    unDirectedHash.get(elem).remove((Integer) v);
+                }
+                unDirectedHash.remove(v);
+            }
+        }
+    }
+    @Override
+    public void remove(int u, int v) {
+        if (contains(u) && contains(v)) {
+            if (isDirected()) {
+                if (hashSucc.get(u).contains(v)){
+                    hashSucc.get(u).remove((Integer) v);
+                    hashPred.get(v).remove((Integer) u);
+                } else{
+                    //MAYBE THROW AN ERROR????
+                }
+            } else {
+                if (unDirectedHash.get(u).contains(v)){
+                    unDirectedHash.get(u).remove((Integer) v);
+                    unDirectedHash.get(v).remove((Integer) u);
+                } else{
+                    //MAYBE THROW AN ERROR
+                }
+            }
+        }
+    }
+
+    @Override
+    public Iteration<Integer> vertices() {
+        ArrayList<Integer> myVerts = new ArrayList<Integer>();
+        if (isDirected()){
+            for (int key : hashSucc.keySet()){
+                myVerts.add(key);
+            }
+            return Iteration.iteration(myVerts);
+        } else {
+            for (int key : unDirectedHash.keySet()){
+                myVerts.add(key);
+            }
+            return Iteration.iteration(myVerts);
+        }
+    }
+
+    @Override
+    public int successor(int v, int k) {
+        if (isDirected()) {
+            if (!hashSucc.containsKey(v) || k < 0 || k >= hashSucc.get(v).size()){
+                return 0;
+            }
+            return hashSucc.get(v).get(k);
+        } else {
+            if (!unDirectedHash.containsKey(v) || k < 0 || k >= unDirectedHash.get((Integer) v).size()){
+                return 0;
+            }
+            return unDirectedHash.get(v).get(k);
+        }
+    }
+
+    @Override
+    public abstract int predecessor(int v, int k);
+
+    @Override
+    public Iteration<Integer> successors(int v) {
+        if (!contains(v)) {
+            return Iteration.iteration(new ArrayList<Integer>());
+        }
+        if (isDirected()) {
+            return Iteration.iteration(hashSucc.get(v));
+        }
+        return Iteration.iteration(unDirectedHash.get(v));
+    }
+
+    @Override
+    public abstract Iteration<Integer> predecessors(int v);
+
+    @Override
+    public Iteration<int[]> edges() {
+        ArrayList<int[]> myEdges = new ArrayList<int[]>();
+        if (isDirected()) {
+            for (int elem : hashSucc.keySet()){
+                for (int pt : hashSucc.get(elem)){
+                    int[] vert = new int[2];
+                    vert[0] = elem;
+                    vert[1] = pt;
+                    myEdges.add(vert);
+                }
+            }
+            return Iteration.iteration(myEdges);
+        } else {
+            for (int elem : unDirectedHash.keySet()){
+                for (int pt : unDirectedHash.get(elem)){
+                    int[] vert = new int[2];
+                    vert[0] = elem;
+                    vert[1] = pt;
+                    boolean bool = true;
+                    for (int[] pair : myEdges) {
+                        if (pair[0] == vert[1] && pair[1] == vert[0]) {
+                            bool = false;
+                        }
+                    }
+                    if (bool) {
+                        myEdges.add(vert);
+                    }
+                }
+            }
+            return Iteration.iteration(myEdges);
+        }
+    }
+
+    @Override
+    protected boolean mine(int v) {
+        return contains(v);
+    }
+
+    @Override
+    protected void checkMyVertex(int v) {
+        if (!contains(v)){
+            return ; //MAYBE CHANGGEGGEGEGEGGEGG TO ERROR!!!!!
+        }
+    }
+
+    @Override
+    protected int edgeId(int u, int v) {
+        if(isDirected()){
+            if (contains(u, v)) {
+                return (u + v) * (u + v + 1) / 2 + v;
+            }
+            return 0;
+        } else {
+            if (contains(u , v)){
+                if (v > u) {
+                    return (u + v) * (u + v + 1) / 2 + v;
+                }
+                return (u + v) * (u + v + 1) / 2 + u;
+            } else {
+                return 0;
+            }
+        }
+    }
+
+    /* A HashTable of my Successors in the case I have a directed graph */
+    HashMap<Integer, ArrayList<Integer>> hashSucc;
+    /* A HashTable of my Predecessors in the case I have a directed graph */
+    HashMap<Integer, ArrayList<Integer>> hashPred;
+    /* A HashTable of my the Graph in the case I have an undirected graph */
+    HashMap<Integer, ArrayList<Integer>> unDirectedHash;
+}

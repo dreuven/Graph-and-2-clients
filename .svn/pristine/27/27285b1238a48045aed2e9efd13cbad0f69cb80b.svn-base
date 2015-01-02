@@ -1,0 +1,42 @@
+package graph;
+import java.util.HashMap;
+
+/* See restrictions in Graph.java. */
+
+/** A partial implementation of ShortestPaths that contains the weights of
+ *  the vertices and the predecessor edges.   The client needs to
+ *  supply only the two-argument getWeight method.
+ *  @author Doron Reuven.
+ */
+public abstract class SimpleShortestPaths extends ShortestPaths {
+
+    /** The shortest paths in G from SOURCE. */
+    public SimpleShortestPaths(Graph G, int source) {
+        this(G, source, 0);
+    }
+
+    /** A shortest path in G from SOURCE to DEST. */
+    public SimpleShortestPaths(Graph G, int source, int dest) {
+        super(G, source, dest);
+    }
+
+    @Override
+    public double getWeight(int v) {
+        return theMap.get(v).whatWeight();
+    }
+
+    @Override
+    protected void setWeight(int v, double w) {
+        theMap.get(v).newWeight(w);
+    }
+
+    @Override
+    public int getPredecessor(int v) {
+        return theMap.get(v).getPred();
+    }
+
+    @Override
+    protected void setPredecessor(int v, int u) {
+        theMap.get(v).newPred(u);
+    }
+}

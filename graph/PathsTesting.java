@@ -1,0 +1,105 @@
+package graph;
+
+import org.junit.Test;
+import static org.junit.Assert.*;
+import java.util.HashMap;
+import java.util.List;
+
+
+/** Unit tests for 3rd Autograder.
+ *  @author Doron Reuven
+ */
+
+public class PathsTesting {
+
+    private void makedirGraph(DirectedGraph g) {
+        g.add();
+        g.add();
+        g.add();
+        g.add();
+        g.add();
+        g.add();
+        g.add();
+        g.add(2, 3);
+        g.add(4, 2);
+        g.add(4, 3);
+        g.add(4, 5);
+        g.add(5, 6);
+        g.add(5, 3);
+        g.add(6, 7);
+        g.remove(1);
+    }
+
+    @Test
+    public void testingPath() {
+        DirectedGraph g = new DirectedGraph();
+        makedirGraph(g);
+        VideoGraphPaths test = new VideoGraphPaths(g, 4, 3);
+        test.putDist(4, 102.0);
+        test.putDist(2, 4.0);
+        test.putDist(5, 5.1);
+        test.putDist(6, 40.0);
+        test.putDist(3, 0.0);
+        test.putDist(7, 1000.0);
+        test.putWeight(4, 2, 12.2);
+        test.putWeight(2, 3, 6.5);
+        test.putWeight(4, 5, 11.2);
+        test.putWeight(4, 3, 102.0);
+        test.putWeight(5, 6, 30.0);
+        test.putWeight(5, 3, 9.1);
+        test.putWeight(6, 7, 5000.0);
+        test.setPaths();
+        List<Integer> testPath = test.pathTo();
+        assertArrayEquals(testPath.toArray(), new Integer[]{4, 2, 3});
+        assertEquals(4, test.getSource());
+        assertEquals(3, test.getDest());
+        assertTrue(test.getPredecessor(5) == 4);
+        assertTrue(test.getPredecessor(7) == 0);
+        assertTrue(test.getChecker());
+    }
+
+
+    private class VideoGraphPaths extends SimpleShortestPaths {
+
+        private HashMap<Integer, Double> edgeWeight =
+            new HashMap<Integer, Double>();
+        private HashMap<Integer, Double> vertexDist =
+            new HashMap<Integer, Double>();
+        boolean checker;
+        public VideoGraphPaths(Graph G, int source, int dest) {
+            super(G, source, dest);
+            checker = false;
+        }
+
+        public HashMap<Integer, Double> getedgWeight() {
+            return edgeWeight;
+        }
+
+        public void putWeight(int u, int v, double weight) {
+            edgeWeight.put(_G.edgeId(u, v), weight);
+        }
+
+        public boolean getChecker() {
+            return checker;
+        }
+
+        public void putDist(int v, double distance) {
+            vertexDist.put(v, distance);
+        }
+
+        public HashMap<Integer, Double> getVertexDist() {
+            return vertexDist;
+        }
+
+        @Override
+        protected double estimatedDistance(int v) {
+            checker = true;
+            return vertexDist.get(v);
+        }
+
+        @Override
+        public double getWeight(int u, int v) {
+            return edgeWeight.get(_G.edgeId(u, v));
+        }
+    }
+}
